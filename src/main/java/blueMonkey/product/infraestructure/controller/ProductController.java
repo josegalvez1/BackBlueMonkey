@@ -7,10 +7,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/product")
 public class ProductController {
@@ -20,6 +22,7 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public OutputProductDto addProduct(@Valid @RequestBody InputProductDto inputProductDto){
         return productService.addProduct(inputProductDto);
     }
@@ -38,12 +41,14 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public OutputProductDto updateProduct(@PathVariable Long id, @Valid @RequestBody InputProductDto inputProductDto){
         return productService.updateProduct(id,inputProductDto);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<String> deleteProduct(@PathVariable Long id){
         return productService.deleteProduct(id);
     }

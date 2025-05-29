@@ -13,6 +13,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<String> handleRoleNotFoundException(RoleNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<CustomError> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
         CustomError error = new CustomError(new Date(), 409, ex.getMessage());

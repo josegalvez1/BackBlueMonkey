@@ -2,7 +2,10 @@ package blueMonkey.user.application.service;
 
 import blueMonkey.security.dto.AuthLoginRequest;
 import blueMonkey.security.dto.AuthReponse;
+import blueMonkey.security.entity.RoleEnum;
 import blueMonkey.security.exceptions.EmailNotValidException;
+import blueMonkey.security.exceptions.RoleNotFoundException;
+import blueMonkey.security.repository.RoleRepository;
 import blueMonkey.security.util.JwtUtils;
 import blueMonkey.user.application.mapper.UserMapper;
 import blueMonkey.user.domain.models.UserEntity;
@@ -24,7 +27,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -36,6 +38,8 @@ public class UserService implements UserDetailsService {
 
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";  // Expresión regular para correo electrónico
     private static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[$@$!%*?&])([A-Za-z\\d$@$!%*?&]|[^ ]){8,40}$";
+
+    @Autowired private RoleRepository roleRepository;
 
     @Autowired private UserRepository userRepository;
     @Autowired private UserMapper userMapper;
@@ -107,6 +111,11 @@ public class UserService implements UserDetailsService {
         if (!isValidEmail(userEntity.getEmail())) {
             throw new EmailNotValidException("El correo electrónico no es válido. " + inputUsuarioDto.getEmail());
         }
+         userEntity.setRoles(inputUsuarioDto.getRoles().stream()
+                .map(roleName -> roleRepository.findByRoleEnum(RoleEnum.valueOf(roleName))
+                        .orElseThrow(() -> new RoleNotFoundException("Rol no encontrado: " + roleName)))
+                .collect(Collectors.toSet()));
+
         userRepository.save(userEntity);
         return userMapper.toDTO(userEntity);
     }
@@ -117,6 +126,13 @@ public class UserService implements UserDetailsService {
         if(inputUsuarioDto.getName()!= null) user.setName(inputUsuarioDto.getName());
         if(inputUsuarioDto.getEmail()!= null) user.setEmail(inputUsuarioDto.getEmail());
         if(inputUsuarioDto.getPassword()!= null) user.setPassword(inputUsuarioDto.getPassword());
+        if(inputUsuarioDto.getRoles() != null) {
+            user.setRoles(inputUsuarioDto.getRoles().stream()
+                    .map(roleName -> roleRepository.findByRoleEnum(RoleEnum.valueOf(roleName))
+                            .orElseThrow(() -> new RoleNotFoundException("Rol no encontrado: " + roleName)))
+                    .collect(Collectors.toSet()));
+        }
+
         userRepository.save(user);
         return userMapper.toDTO(user);
     }
