@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/uploads/**").permitAll()
                         .requestMatchers( HttpMethod.GET,"/tattoo/**").permitAll()
+                        .requestMatchers( HttpMethod.GET,"/product/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -82,9 +82,14 @@ public class UserService implements UserDetailsService {
 
         Authentication authentication = this.authenticate(email, password);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        List<String> roles = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
 
         String accessToken = jwtUtils.createToken(authentication);
-        return new AuthReponse(email, "User loged successfuly", accessToken, true);
+        return new AuthReponse(email, "User loged successfuly", accessToken, true,roles);
     }
 
     /**

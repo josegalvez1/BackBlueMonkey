@@ -28,13 +28,11 @@ public class ProductController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER','INVITED')")
     public List<OutputProductDto> getAllProducts(){
         return productService.getAllProducts();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','INVITED')")
     public OutputProductDto getProduct(@PathVariable Long id){
         return productService.getProduct(id);
     }
@@ -54,7 +52,6 @@ public class ProductController {
     }
 
     @GetMapping("/category/{category}")
-    @PreAuthorize("hasRole('ADMIN')")
     public OutputProductDto getProduct(@PathVariable String category){
         return productService.getProductCategory(category);
     }
