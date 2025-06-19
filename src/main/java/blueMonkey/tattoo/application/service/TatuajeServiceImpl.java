@@ -58,16 +58,11 @@ public class TatuajeServiceImpl implements TatuajeService {
         return tatuajeMapper.toDTO(producto);
     }
 
-    public OutputTatuajeDto getTatuajeName(String name){
-        TatuajeEntity producto = tatuajeRepository.findByName(name);
-        return tatuajeMapper.toDTO(producto);
+    public List<OutputTatuajeDto> filtrarTatuajes(String name, String category, String size) {
+
+        List<TatuajeEntity> tatuajes = tatuajeRepository.findByFilters(name, category, size);
+        return tatuajes.stream()
+                .map(tatuajeMapper::toDTO).toList();
     }
-    public OutputTatuajeDto getTatuajeCategory(String category){
-        TatuajeEntity producto = tatuajeRepository.findByCategory(category);
-        return tatuajeMapper.toDTO(producto);
-    }
-    public OutputTatuajeDto getTatuajeSize(String size){
-        TatuajeEntity producto = tatuajeRepository.findBySize(size);
-        return tatuajeMapper.toDTO(producto);
-    }
+
 }

@@ -37,19 +37,15 @@ public class TatuajeController {
         return tatuajeService.getTatuaje(id);
     }
 
-    @GetMapping("/name/{name}")
-    public OutputTatuajeDto getTatuajeByName(@PathVariable String name){
-        return tatuajeService.getTatuajeName(name);
-    }
 
-    @GetMapping("/size/{size}")
-    public OutputTatuajeDto getTatuajeBySize(@PathVariable String size){
-        return tatuajeService.getTatuajeSize(size);
-    }
+    @GetMapping("/tatuajes")
+    public List<OutputTatuajeDto> filtrarTatuajes(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String size
+    ) {
+return tatuajeService.filtrarTatuajes(name, category, size);
 
-    @GetMapping("/category/{category}")
-    public OutputTatuajeDto getTatuajeByCategory(@PathVariable String category){
-        return tatuajeService.getTatuajeCategory(category);
     }
 
     @PutMapping("/{id}")

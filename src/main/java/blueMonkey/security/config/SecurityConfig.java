@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/uploads/**").permitAll()
                         .requestMatchers( HttpMethod.GET,"/tattoo/**").permitAll()
                         .requestMatchers( HttpMethod.GET,"/product/**").permitAll()
+                        .requestMatchers( HttpMethod.GET,"/api/bookings/**").permitAll()
+                        .requestMatchers( HttpMethod.POST,"/api/bookings/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
