@@ -111,6 +111,55 @@ public class UserService implements UserDetailsService {
         return new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
     }
 
+
+    public AuthReponse register(AuthLoginRequest authLoginRequest) {
+        String email = authLoginRequest.username();
+        String password = authLoginRequest.password();
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("El usuario ya existe con este email: " + email);
+        }
+
+        if (!isValidEmail(email)) {
+            throw new EmailNotValidException("El correo electrónico no es válido: " + email);
+        }
+
+        if (!isValidPassword(password)) {
+            throw new RuntimeException("La contraseña no cumple con los requisitos.");
+        }
+
+        UserEntity newUser = new UserEntity();
+        newUser.setEmail(email);
+        newUser.setPassword(passwordEncoder.encode(password));
+        newUser.setName("");
+
+        // Asignar rol INVITED
+        RoleEnum defaultRole = RoleEnum.INVITED;
+        newUser.setRoles(Set.of(
+                roleRepository.findByRoleEnum(defaultRole)
+                        .orElseThrow(() -> new RoleNotFoundException("No se encontró el rol INVITED"))
+        ));
+
+        userRepository.save(newUser);
+
+        // Crear autenticación para generar token
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                newUser.getEmail(), null,
+                newUser.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleEnum().name()))
+                        .collect(Collectors.toSet())
+        );
+
+        String token = jwtUtils.createToken(authentication);
+        List<String> roles = newUser.getRoles().stream()
+                .map(role -> "ROLE_" + role.getRoleEnum().name())
+                .collect(Collectors.toList());
+
+        return new AuthReponse(email, "Usuario registrado exitosamente", token, true, roles);
+    }
+
+
+    /*Añade usuarios desde el ADMIN*/
     public OutputUserDto addUser(InputUserDto inputUsuarioDto) {
         UserEntity userEntity = userMapper.toEntity(inputUsuarioDto);
         if (!isValidEmail(userEntity.getEmail())) {
@@ -145,7 +194,7 @@ public class UserService implements UserDetailsService {
     public ResponseEntity<String> deleteUser(Long id){
         UserEntity usuario = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No existe user con id: "+ id));
-        userRepository.save(usuario);
+        userRepository.delete(usuario);
         return ResponseEntity.status(200).body("Se ha borrado correctamente el usuario");
     }
 

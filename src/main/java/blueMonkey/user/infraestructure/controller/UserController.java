@@ -24,7 +24,6 @@ public class UserController {
     UserService userService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER','INVITED')")
     @Transactional
     public OutputUserDto addUser(@Valid @RequestBody InputUserDto inputUsuarioDto){
         return userService.addUser(inputUsuarioDto);
