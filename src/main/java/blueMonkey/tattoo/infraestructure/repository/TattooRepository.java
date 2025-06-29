@@ -1,6 +1,6 @@
 package blueMonkey.tattoo.infraestructure.repository;
 
-import blueMonkey.tattoo.models.TatuajeEntity;
+import blueMonkey.tattoo.models.TattooEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,11 +9,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TatuajeRepository extends JpaRepository<TatuajeEntity, Long> {
-    TatuajeEntity findByName(String name);
-    TatuajeEntity findByCategory(String category);
-    TatuajeEntity findBySize(String size);
-    TatuajeEntity findByImageUrl(String imageUrl);
+public interface TattooRepository extends JpaRepository<TattooEntity, Long> {
+    TattooEntity findByName(String name);
+    TattooEntity findByCategory(String category);
+    TattooEntity findBySize(String size);
+    TattooEntity findByImageUrl(String imageUrl);
 
 
     @Query("SELECT t FROM TatuajeEntity t WHERE " +
@@ -23,9 +23,9 @@ public interface TatuajeRepository extends JpaRepository<TatuajeEntity, Long> {
             "(:size IS NULL OR LOWER(t.size) LIKE LOWER(CONCAT('%', :size, '%')))"
 
     )
-    List<TatuajeEntity> findByFilters(@Param("name") String name,
-                                      @Param("category") String category,
-                                      @Param("bodyArea") String bodyArea,
-                                      @Param("size") String size);
+    List<TattooEntity> findByFilters(@Param("name") String name,
+                                     @Param("category") String category,
+                                     @Param("bodyArea") String bodyArea,
+                                     @Param("size") String size);
 
 }

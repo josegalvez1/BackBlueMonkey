@@ -1,6 +1,6 @@
 package blueMonkey.product.infraestructure.controller;
 
-import blueMonkey.product.application.service.ProductoService;
+import blueMonkey.product.application.service.ProductService;
 import blueMonkey.product.infraestructure.dtos.input.InputProductDto;
 import blueMonkey.product.infraestructure.dtos.output.OutputProductDto;
 import jakarta.validation.Valid;
@@ -18,7 +18,7 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    ProductoService productService;
+    ProductService productService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

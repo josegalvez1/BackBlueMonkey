@@ -13,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
-public class TatuajeEntity {
+public class TattooEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

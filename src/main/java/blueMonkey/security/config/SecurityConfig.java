@@ -46,7 +46,6 @@ public class SecurityConfig {
                         .requestMatchers( HttpMethod.GET,"/tattoo/**").permitAll()
                         .requestMatchers( HttpMethod.GET,"/product/**").permitAll()
                         .requestMatchers( HttpMethod.GET,"/api/bookings/**").permitAll()
-                        .requestMatchers( HttpMethod.POST,"/api/bookings/**").permitAll()
                         .requestMatchers( HttpMethod.POST,"/user/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -77,7 +76,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

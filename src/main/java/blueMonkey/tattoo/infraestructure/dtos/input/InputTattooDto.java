@@ -1,5 +1,6 @@
-package blueMonkey.tattoo.infraestructure.dtos.output;
+package blueMonkey.tattoo.infraestructure.dtos.input;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -7,10 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OutputTatuajeDto {
+public class InputTattooDto {
 
-    private Long id;
-
+    @NotNull(message = "El nombre no puede ser nulo")
     private String name;
 
     private String category;
@@ -20,5 +20,6 @@ public class OutputTatuajeDto {
     private String size;
 
     private String bodyArea;
+
 
 }

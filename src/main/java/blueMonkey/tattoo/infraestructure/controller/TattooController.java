@@ -1,8 +1,8 @@
 package blueMonkey.tattoo.infraestructure.controller;
 
-import blueMonkey.tattoo.application.service.TatuajeServiceImpl;
-import blueMonkey.tattoo.infraestructure.dtos.input.InputTatuajeDto;
-import blueMonkey.tattoo.infraestructure.dtos.output.OutputTatuajeDto;
+import blueMonkey.tattoo.application.service.TattooServiceImpl;
+import blueMonkey.tattoo.infraestructure.dtos.input.InputTattooDto;
+import blueMonkey.tattoo.infraestructure.dtos.output.OutputTattooDto;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,31 +15,31 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/tattoo")
-public class TatuajeController {
+public class TattooController {
 
     @Autowired
-    TatuajeServiceImpl tatuajeService;
+    TattooServiceImpl tatuajeService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public OutputTatuajeDto addTatuaje(@Valid @RequestBody InputTatuajeDto inputTatuajeDto){
+    public OutputTattooDto addTatuaje(@Valid @RequestBody InputTattooDto inputTatuajeDto){
         return tatuajeService.addTatuaje(inputTatuajeDto);
     }
 
     @GetMapping
-    public List<OutputTatuajeDto> getAllTatuaje(){
+    public List<OutputTattooDto> getAllTatuaje(){
         return tatuajeService.getAllTatuajes();
     }
 
     @GetMapping("/{id}")
-    public OutputTatuajeDto getTatuaje(@PathVariable Long id){
+    public OutputTattooDto getTatuaje(@PathVariable Long id){
         return tatuajeService.getTatuaje(id);
     }
 
 
     @GetMapping("/tatuajes")
-    public List<OutputTatuajeDto> filtrarTatuajes(
+    public List<OutputTattooDto> filtrarTatuajes(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String bodyArea,
@@ -52,7 +52,7 @@ return tatuajeService.filtrarTatuajes(name,category,bodyArea,size);
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public OutputTatuajeDto updateTatuaje(@PathVariable Long id, @Valid @RequestBody InputTatuajeDto inputTatuajeDto){
+    public OutputTattooDto updateTatuaje(@PathVariable Long id, @Valid @RequestBody InputTattooDto inputTatuajeDto){
         return tatuajeService.updateTatuaje(id,inputTatuajeDto);
     }
     @DeleteMapping("/{id}")
