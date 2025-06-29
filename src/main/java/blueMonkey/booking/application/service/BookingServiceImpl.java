@@ -2,6 +2,7 @@ package blueMonkey.booking.application.service;
 
 import blueMonkey.booking.domain.models.Booking;
 import blueMonkey.booking.infraestructure.repository.BookingRepository;
+import blueMonkey.security.exceptions.BookingConflictException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,12 @@ public class BookingServiceImpl implements BookingService {
 
     public Booking createBooking (Booking booking) {
         booking.setStatus(Booking.BookingStatus.PENDING);
+        List<Booking> conflictingBookings = bookingRepository.findByDateTimeAndStatus(
+                booking.getDateTime(), Booking.BookingStatus.APPROVED);
+
+        if (!conflictingBookings.isEmpty()) {
+            throw new BookingConflictException("Ya existe una reserva en ese horario");
+        }
         return bookingRepository.save(booking);
     }
 

@@ -42,9 +42,10 @@ public class TatuajeController {
     public List<OutputTatuajeDto> filtrarTatuajes(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String bodyArea,
             @RequestParam(required = false) String size
     ) {
-return tatuajeService.filtrarTatuajes(name, category, size);
+return tatuajeService.filtrarTatuajes(name,category,bodyArea,size);
 
     }
 

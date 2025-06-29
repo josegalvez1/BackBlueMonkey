@@ -28,6 +28,7 @@ public class Booking {
     public enum BookingStatus {
         PENDING,
         APPROVED,
-        REJECTED
+        REJECTED,
+        FREE
     }
 }

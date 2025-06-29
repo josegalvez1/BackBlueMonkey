@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TatuajeServiceImpl implements TatuajeService {
@@ -34,6 +33,8 @@ public class TatuajeServiceImpl implements TatuajeService {
         if(inputTatuajeDto.getName()!= null) tatuaje.setName(inputTatuajeDto.getName());
         if(inputTatuajeDto.getCategory()!= null) tatuaje.setCategory(inputTatuajeDto.getCategory());
         if(inputTatuajeDto.getSize()!= null) tatuaje.setSize(inputTatuajeDto.getSize());
+        if(inputTatuajeDto.getBodyArea()!= null) tatuaje.setBodyArea(inputTatuajeDto.getBodyArea());
+
         if(inputTatuajeDto.getImageUrl()!= null) tatuaje.setImageUrl(inputTatuajeDto.getImageUrl());
         tatuajeRepository.save(tatuaje);
         return tatuajeMapper.toDTO(tatuaje);
@@ -58,9 +59,9 @@ public class TatuajeServiceImpl implements TatuajeService {
         return tatuajeMapper.toDTO(producto);
     }
 
-    public List<OutputTatuajeDto> filtrarTatuajes(String name, String category, String size) {
+    public List<OutputTatuajeDto> filtrarTatuajes(String name, String category,String bodyArea, String size) {
 
-        List<TatuajeEntity> tatuajes = tatuajeRepository.findByFilters(name, category, size);
+        List<TatuajeEntity> tatuajes = tatuajeRepository.findByFilters(name, category, bodyArea ,size);
         return tatuajes.stream()
                 .map(tatuajeMapper::toDTO).toList();
     }

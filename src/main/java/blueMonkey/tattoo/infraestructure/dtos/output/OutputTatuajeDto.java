@@ -19,4 +19,6 @@ public class OutputTatuajeDto {
 
     private String size;
 
+    private String bodyArea;
+
 }

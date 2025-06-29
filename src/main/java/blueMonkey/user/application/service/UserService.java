@@ -4,6 +4,7 @@ import blueMonkey.security.dto.AuthLoginRequest;
 import blueMonkey.security.dto.AuthReponse;
 import blueMonkey.security.entity.RoleEnum;
 import blueMonkey.security.exceptions.EmailNotValidException;
+import blueMonkey.security.exceptions.InvalidPasswordException;
 import blueMonkey.security.exceptions.RoleNotFoundException;
 import blueMonkey.security.repository.RoleRepository;
 import blueMonkey.security.util.JwtUtils;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
 
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";  // Expresión regular para correo electrónico
-    private static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[$@$!%*?&])([A-Za-z\\d$@$!%*?&]|[^ ]){8,40}$";
+    private static final String PASSWORD_REGEX = "^.{8,40}$";
 
     @Autowired private RoleRepository roleRepository;
 
@@ -117,7 +118,7 @@ public class UserService implements UserDetailsService {
         String password = authLoginRequest.password();
 
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("El usuario ya existe con este email: " + email);
+            throw new EntityNotFoundException("El usuario ya existe con este email: " + email);
         }
 
         if (!isValidEmail(email)) {
@@ -125,7 +126,7 @@ public class UserService implements UserDetailsService {
         }
 
         if (!isValidPassword(password)) {
-            throw new RuntimeException("La contraseña no cumple con los requisitos.");
+            throw new InvalidPasswordException("La contraseña debe tener entre 8 y 20 dígitos.");
         }
 
         UserEntity newUser = new UserEntity();

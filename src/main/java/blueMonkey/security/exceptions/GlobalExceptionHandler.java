@@ -70,4 +70,10 @@ public class GlobalExceptionHandler {
         CustomError error = new CustomError(new Date(), 403, "No tienes permiso para acceder a este recurso");
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(BookingConflictException.class)
+    public ResponseEntity<CustomError> handleBookingConflictException(BookingConflictException ex) {
+        CustomError error = new CustomError(new Date(), 409, ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
 }

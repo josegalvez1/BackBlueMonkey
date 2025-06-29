@@ -19,4 +19,7 @@ public class InputTatuajeDto {
 
     private String size;
 
+    private String bodyArea;
+
+
 }

@@ -28,4 +28,6 @@ public class TatuajeEntity {
 
     private String size;
 
+    private String bodyArea;
+
 }
