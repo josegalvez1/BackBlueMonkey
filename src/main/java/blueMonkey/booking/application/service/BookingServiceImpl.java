@@ -6,6 +6,8 @@ import blueMonkey.booking.infraestructure.controller.dtos.input.InputBookingDto;
 import blueMonkey.booking.infraestructure.controller.dtos.output.OutputBookingDto;
 import blueMonkey.booking.infraestructure.repository.BookingRepository;
 import blueMonkey.security.exceptions.BookingConflictException;
+import blueMonkey.user.domain.models.UserEntity;
+import blueMonkey.user.infraestructure.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     private BookingRepository bookingRepository;
+    @Autowired
+    private UserRepository userRepository;
 @Autowired private BookingMapper bookingMapper;
 
-    public Booking createBooking (Booking booking) {
+    public OutputBookingDto createBooking (InputBookingDto inputBookingDto) {
+        System.out.println("djdjd");
+        UserEntity user = userRepository.findByEmail(inputBookingDto.getEmailUser())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Booking booking = bookingMapper.toEntity(inputBookingDto);
+        booking.setUser(user);
+
         System.out.println("creando: ");
         List<Booking> conflictingBookings = bookingRepository.findByDateTimeAndStatus(
                 booking.getDateTime(), Booking.BookingStatus.APPROVED);
@@ -28,7 +39,8 @@ public class BookingServiceImpl implements BookingService {
         if (!conflictingBookings.isEmpty()) {
             throw new BookingConflictException("Ya existe una reserva en ese horario");
         }
-        return bookingRepository.save(booking);
+
+        return bookingMapper.toDTO(bookingRepository.save(booking));
     }
 
     public List<Booking> getBookingsByStatus(Booking.BookingStatus status) {

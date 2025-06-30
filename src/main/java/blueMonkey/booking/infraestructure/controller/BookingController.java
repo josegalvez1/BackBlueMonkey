@@ -20,8 +20,8 @@ public class BookingController {
     private BookingService bookingService;
 
     @PostMapping
-    public Booking createBooking(@RequestBody Booking booking) {
-        return bookingService.createBooking(booking);
+    public OutputBookingDto createBooking(@RequestBody InputBookingDto inputBookingDto) {
+        return bookingService.createBooking(inputBookingDto);
     }
 
     @GetMapping

@@ -16,7 +16,7 @@ public interface TattooRepository extends JpaRepository<TattooEntity, Long> {
     TattooEntity findByImageUrl(String imageUrl);
 
 
-    @Query("SELECT t FROM TatuajeEntity t WHERE " +
+    @Query("SELECT t FROM TattooEntity t WHERE " +
             "(:name IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:category IS NULL OR LOWER(t.category) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
             "(:bodyArea IS NULL OR LOWER(t.bodyArea) LIKE LOWER(CONCAT('%', :bodyArea, '%'))) AND "+

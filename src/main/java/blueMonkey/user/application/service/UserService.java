@@ -15,6 +15,7 @@ import blueMonkey.user.infraestructure.dtos.input.InputUserDto;
 import blueMonkey.user.infraestructure.dtos.output.OutputUserDto;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -37,7 +39,6 @@ import java.util.stream.Collectors;
 @Service
 public class UserService implements UserDetailsService {
 
-    private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";  // Expresión regular para correo electrónico
     private static final String PASSWORD_REGEX = "^.{8,40}$";
 
     @Autowired private RoleRepository roleRepository;
@@ -121,10 +122,6 @@ public class UserService implements UserDetailsService {
             throw new EntityNotFoundException("El usuario ya existe con este email: " + email);
         }
 
-        if (!isValidEmail(email)) {
-            throw new EmailNotValidException("El correo electrónico no es válido: " + email);
-        }
-
         if (!isValidPassword(password)) {
             throw new InvalidPasswordException("La contraseña debe tener entre 8 y 20 dígitos.");
         }
@@ -163,8 +160,8 @@ public class UserService implements UserDetailsService {
     /*Añade usuarios desde el ADMIN*/
     public OutputUserDto addUser(InputUserDto inputUsuarioDto) {
         UserEntity userEntity = userMapper.toEntity(inputUsuarioDto);
-        if (!isValidEmail(userEntity.getEmail())) {
-            throw new EmailNotValidException("El correo electrónico no es válido. " + inputUsuarioDto.getEmail());
+        if (userRepository.existsByEmail(inputUsuarioDto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
         }
          userEntity.setRoles(inputUsuarioDto.getRoles().stream()
                 .map(roleName -> roleRepository.findByRoleEnum(RoleEnum.valueOf(roleName))
@@ -209,18 +206,6 @@ public class UserService implements UserDetailsService {
         UserEntity usuario = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No existe usuario con id: "+ id));
         return userMapper.toDTO(usuario);
-    }
-
-    /**
-     * Valida si un correo electrónico tiene un formato válido usando una expresión regular.
-     *
-     * @param email El correo electrónico a validar.
-     * @return `true` si el correo es válido, `false` en caso contrario.
-     */
-    private boolean isValidEmail(String email) {
-        Pattern pattern = Pattern.compile(EMAIL_REGEX);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
     }
 
     /**

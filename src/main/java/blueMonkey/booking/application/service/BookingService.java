@@ -12,7 +12,7 @@ public interface BookingService {
     ResponseEntity<String> deleteBooking(Long id);
     Booking updateBookingStatus(Long id, Booking.BookingStatus status);
     List<Booking> getBookingsByStatus(Booking.BookingStatus status);
-    Booking createBooking (Booking booking);
+   OutputBookingDto createBooking (InputBookingDto inputBookingDto);
 
 
 }
