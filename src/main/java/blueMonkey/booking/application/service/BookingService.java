@@ -10,9 +10,8 @@ import java.util.List;
 public interface BookingService {
     OutputBookingDto updateBooking(Long id, InputBookingDto inputBookingDto);
     ResponseEntity<String> deleteBooking(Long id);
-    Booking updateBookingStatus(Long id, Booking.BookingStatus status);
-    List<Booking> getBookingsByStatus(Booking.BookingStatus status);
+    OutputBookingDto updateBookingStatus(Long id, Booking.BookingStatus status);
+    List<OutputBookingDto> getBookingsByStatus(Booking.BookingStatus status);
    OutputBookingDto createBooking (InputBookingDto inputBookingDto);
-
-
+    List<OutputBookingDto> getBookingsByEmail(String email);
 }
