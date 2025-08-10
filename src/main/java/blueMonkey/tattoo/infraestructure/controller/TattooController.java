@@ -58,7 +58,7 @@ return tatuajeService.filtrarTatuajes(name,category,bodyArea,size);
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public ResponseEntity<String> deleteTatuaje(@PathVariable Long id){
+    public  ResponseEntity<Void> deleteTatuaje(@PathVariable Long id){
         return tatuajeService.deleteTatuaje(id);
     }
 

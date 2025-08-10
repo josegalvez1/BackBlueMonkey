@@ -40,11 +40,12 @@ public class TattooServiceImpl implements TattooService {
         return tatuajeMapper.toDTO(tatuaje);
     }
 
-    public ResponseEntity<String> deleteTatuaje(Long id){
+    public  ResponseEntity<Void> deleteTatuaje(Long id){
         TattooEntity producto = tatuajeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No existe tatuaje con id: "+ id));
         tatuajeRepository.delete(producto);
-        return ResponseEntity.status(200).body("Se ha borrado correctamente");
+        return ResponseEntity.noContent().build(); // devuelve 204 sin contenido
+
     }
 
     public List<OutputTattooDto> getAllTatuajes(){

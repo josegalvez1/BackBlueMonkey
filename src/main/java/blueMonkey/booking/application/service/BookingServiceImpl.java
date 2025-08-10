@@ -38,7 +38,8 @@ public class BookingServiceImpl implements BookingService {
 
         System.out.println("📆 Validando solapamiento para: " + booking.getDateTime() + " - " + booking.getEndDateTime());
 
-        List<Booking> conflictingBookings = bookingRepository.findByStatus(Booking.BookingStatus.APPROVED)
+        // Validar solapamientos con citas aprobadas
+        List<Booking> conflictingApproved = bookingRepository.findByStatus(Booking.BookingStatus.APPROVED)
                 .stream()
                 .filter(existing -> {
                     LocalDateTime existingStart = existing.getDateTime();
@@ -49,8 +50,27 @@ public class BookingServiceImpl implements BookingService {
                 })
                 .toList();
 
-        if (!conflictingBookings.isEmpty()) {
+        if (!conflictingApproved.isEmpty()) {
             throw new BookingConflictException("Ya existe una reserva en ese horario");
+        }
+
+        // Si la nueva reserva es APPROVED, eliminar citas FREE que se solapen
+        if (inputBookingDto.getStatus() == Booking.BookingStatus.APPROVED) {
+            List<Booking> overlappingFree = bookingRepository.findByStatus(Booking.BookingStatus.FREE)
+                    .stream()
+                    .filter(existing -> {
+                        LocalDateTime existingStart = existing.getDateTime();
+                        LocalDateTime existingEnd = existing.getEndDateTime();
+
+                        return booking.getDateTime().isBefore(existingEnd)
+                                && booking.getEndDateTime().isAfter(existingStart);
+                    })
+                    .toList();
+
+            if (!overlappingFree.isEmpty()) {
+                bookingRepository.deleteAll(overlappingFree);
+                System.out.println("🗑️ Citas libres eliminadas: " + overlappingFree.size());
+            }
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -88,7 +108,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutputBookingDto updateBooking(Long id, InputBookingDto inputBookingDto) {
-        Booking booking = bookingRepository.findById(id)
+            Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
         System.out.println("editando: ");
 
@@ -114,12 +134,52 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public OutputBookingDto updateBookingStatus(Long id, Booking.BookingStatus status) {
-        System.out.println("Status recibido: " + status);
-
+        System.out.println("estoy actualizando");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        // Validar conflictos solo si se cambia a APPROVED desde otro estado
+        if (booking.getStatus() != Booking.BookingStatus.APPROVED &&
+                status == Booking.BookingStatus.APPROVED) {
+
+            List<Booking> conflictingBookings = bookingRepository.findByStatus(Booking.BookingStatus.APPROVED)
+                    .stream()
+                    .filter(existing -> {
+                        boolean isNotSameBooking = !existing.getId().equals(booking.getId());
+                        boolean overlaps = booking.getDateTime().isBefore(existing.getEndDateTime()) &&
+                                booking.getEndDateTime().isAfter(existing.getDateTime());
+                        return isNotSameBooking && overlaps;
+                    })
+                    .toList();
+
+            if (!conflictingBookings.isEmpty()) {
+                throw new BookingConflictException("Ya existe una reserva en ese horario");
+            }
+        }
+
+        // Actualizar el estado
         booking.setStatus(status);
-         bookingRepository.save(booking);
+        bookingRepository.save(booking);
+
+        // Si el estado es APPROVED, eliminar la cita libre que se solape en ese horario
+        if (status == Booking.BookingStatus.APPROVED) {
+            // Buscar citas libres que se solapen con esta cita aprobada
+            List<Booking> freeBookingsToDelete = bookingRepository.findByStatus(Booking.BookingStatus.FREE)
+                    .stream()
+                    .filter(free ->
+                            free.getDateTime().isBefore(booking.getEndDateTime()) &&
+                                    free.getEndDateTime().isAfter(booking.getDateTime())
+                    )
+                    .toList();
+
+            // Eliminar esas citas libres
+            freeBookingsToDelete.forEach(free -> {
+                bookingRepository.delete(free);
+                System.out.println("Cita libre eliminada: " + free.getId());
+            });
+        }
+
         return bookingMapper.toDTO(booking);
     }
+
 }
