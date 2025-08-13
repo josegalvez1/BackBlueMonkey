@@ -14,7 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class BookingServiceImpl implements BookingService {
 
@@ -22,34 +25,90 @@ public class BookingServiceImpl implements BookingService {
     private BookingRepository bookingRepository;
     @Autowired
     private UserRepository userRepository;
-@Autowired private BookingMapper bookingMapper;
+    @Autowired private BookingMapper bookingMapper;
 
-    public OutputBookingDto createBooking (InputBookingDto inputBookingDto) {
-        System.out.println("djdjd");
+    public OutputBookingDto createBooking(InputBookingDto inputBookingDto) {
+        System.out.println("📩 Email recibido: " + inputBookingDto.getEmailUser());
+
         UserEntity user = userRepository.findByEmail(inputBookingDto.getEmailUser())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Booking booking = bookingMapper.toEntity(inputBookingDto);
         booking.setUser(user);
 
-        System.out.println("creando: ");
-        List<Booking> conflictingBookings = bookingRepository.findByDateTimeAndStatus(
-                booking.getDateTime(), Booking.BookingStatus.APPROVED);
+        System.out.println("📆 Validando solapamiento para: " + booking.getDateTime() + " - " + booking.getEndDateTime());
 
-        if (!conflictingBookings.isEmpty()) {
+        // Validar solapamientos con citas aprobadas
+        List<Booking> conflictingApproved = bookingRepository.findByStatus(Booking.BookingStatus.APPROVED)
+                .stream()
+                .filter(existing -> {
+                    LocalDateTime existingStart = existing.getDateTime();
+                    LocalDateTime existingEnd = existing.getEndDateTime();
+
+                    return booking.getDateTime().isBefore(existingEnd)
+                            && booking.getEndDateTime().isAfter(existingStart);
+                })
+                .toList();
+
+        if (!conflictingApproved.isEmpty()) {
             throw new BookingConflictException("Ya existe una reserva en ese horario");
         }
 
-        return bookingMapper.toDTO(bookingRepository.save(booking));
+        // Si la nueva reserva es APPROVED, eliminar citas FREE que se solapen
+        if (inputBookingDto.getStatus() == Booking.BookingStatus.APPROVED) {
+            List<Booking> overlappingFree = bookingRepository.findByStatus(Booking.BookingStatus.FREE)
+                    .stream()
+                    .filter(existing -> {
+                        LocalDateTime existingStart = existing.getDateTime();
+                        LocalDateTime existingEnd = existing.getEndDateTime();
+
+                        return booking.getDateTime().isBefore(existingEnd)
+                                && booking.getEndDateTime().isAfter(existingStart);
+                    })
+                    .toList();
+
+            if (!overlappingFree.isEmpty()) {
+                bookingRepository.deleteAll(overlappingFree);
+                System.out.println("🗑️ Citas libres eliminadas: " + overlappingFree.size());
+            }
+        }
+
+        Booking saved = bookingRepository.save(booking);
+        return bookingMapper.toDTO(saved);
     }
 
-    public List<Booking> getBookingsByStatus(Booking.BookingStatus status) {
-        return bookingRepository.findByStatus(status);
+    public List<OutputBookingDto> getBookingsByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        List<Booking> bookings = bookingRepository.findByUser(user);
+
+        return bookings.stream()
+                .map(bookingMapper::toDTO)
+                .toList();
+    }
+
+
+    public List<OutputBookingDto> getBookingsByStatus(Booking.BookingStatus status) {
+        List<Booking> bookings = bookingRepository.findByStatus(status);
+
+        // Map manually or with a safe DTO mapper
+        return bookings.stream()
+                .map(booking -> new OutputBookingDto(
+                        booking.getId(),
+                        booking.getDateTime(),
+                        booking.getEndDateTime(),
+                        booking.getClientName(),
+                        booking.getClientPhone(),
+                        booking.getDetails(),
+                        booking.getStatus()
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
     public OutputBookingDto updateBooking(Long id, InputBookingDto inputBookingDto) {
-        Booking booking = bookingRepository.findById(id)
+            Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
         System.out.println("editando: ");
 
@@ -65,6 +124,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public ResponseEntity<String> deleteBooking(Long id) {
+        System.out.println("id recibido: " + id);
+
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
 
@@ -72,12 +133,53 @@ public class BookingServiceImpl implements BookingService {
         return ResponseEntity.status(200).body("Se ha borrado correctamente");
     }
 
-    public Booking updateBookingStatus(Long id, Booking.BookingStatus status) {
-        System.out.println("Status recibido: " + status);
-
+    public OutputBookingDto updateBookingStatus(Long id, Booking.BookingStatus status) {
+        System.out.println("estoy actualizando");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        // Validar conflictos solo si se cambia a APPROVED desde otro estado
+        if (booking.getStatus() != Booking.BookingStatus.APPROVED &&
+                status == Booking.BookingStatus.APPROVED) {
+
+            List<Booking> conflictingBookings = bookingRepository.findByStatus(Booking.BookingStatus.APPROVED)
+                    .stream()
+                    .filter(existing -> {
+                        boolean isNotSameBooking = !existing.getId().equals(booking.getId());
+                        boolean overlaps = booking.getDateTime().isBefore(existing.getEndDateTime()) &&
+                                booking.getEndDateTime().isAfter(existing.getDateTime());
+                        return isNotSameBooking && overlaps;
+                    })
+                    .toList();
+
+            if (!conflictingBookings.isEmpty()) {
+                throw new BookingConflictException("Ya existe una reserva en ese horario");
+            }
+        }
+
+        // Actualizar el estado
         booking.setStatus(status);
-        return bookingRepository.save(booking);
+        bookingRepository.save(booking);
+
+        // Si el estado es APPROVED, eliminar la cita libre que se solape en ese horario
+        if (status == Booking.BookingStatus.APPROVED) {
+            // Buscar citas libres que se solapen con esta cita aprobada
+            List<Booking> freeBookingsToDelete = bookingRepository.findByStatus(Booking.BookingStatus.FREE)
+                    .stream()
+                    .filter(free ->
+                            free.getDateTime().isBefore(booking.getEndDateTime()) &&
+                                    free.getEndDateTime().isAfter(booking.getDateTime())
+                    )
+                    .toList();
+
+            // Eliminar esas citas libres
+            freeBookingsToDelete.forEach(free -> {
+                bookingRepository.delete(free);
+                System.out.println("Cita libre eliminada: " + free.getId());
+            });
+        }
+
+        return bookingMapper.toDTO(booking);
     }
+
 }

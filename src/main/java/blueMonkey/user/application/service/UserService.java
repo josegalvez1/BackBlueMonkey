@@ -6,7 +6,9 @@ import blueMonkey.security.entity.RoleEnum;
 import blueMonkey.security.exceptions.EmailNotValidException;
 import blueMonkey.security.exceptions.InvalidPasswordException;
 import blueMonkey.security.exceptions.RoleNotFoundException;
+import blueMonkey.security.repository.PasswordResetTokenRepository;
 import blueMonkey.security.repository.RoleRepository;
+import blueMonkey.security.resetPassword.PasswordResetToken;
 import blueMonkey.security.util.JwtUtils;
 import blueMonkey.user.application.mapper.UserMapper;
 import blueMonkey.user.domain.models.UserEntity;
@@ -17,6 +19,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,8 +33,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,7 +52,88 @@ public class UserService implements UserDetailsService {
     @Autowired private UserMapper userMapper;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtUtils jwtUtils;
+    @Autowired private PasswordResetTokenRepository tokenRepository;
 
+
+    // Enviar correo de recuperación
+//    public void sendPasswordRecoveryEmail(String email) {
+//        UserEntity user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("No existe cuenta con ese email."));
+//
+//        String token = UUID.randomUUID().toString();
+//        LocalDateTime expiry = LocalDateTime.now().plusMinutes(30);
+//
+//        PasswordResetToken resetToken = PasswordResetToken.builder()
+//                .token(token)
+//                .user(user)
+//                .expiryDate(expiry)
+//                .build();
+//
+//        tokenRepository.save(resetToken);
+//
+//        String resetLink = "http://localhost:4200/reset-password?token=" + token; // ajusta a tu URL
+//
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(user.getEmail());
+//        message.setSubject("Restablecer tu contraseña");
+//        message.setText("Haz clic en el siguiente enlace para cambiar tu contraseña: " + resetLink);
+//
+//        mailSender.send(message);
+//    }
+//
+//    // Cambiar contraseña usando el token
+//    public void resetPassword(String token, String newPassword) {
+//        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+//                .orElseThrow(() -> new RuntimeException("Token inválido."));
+//
+//        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+//            throw new RuntimeException("El token ha expirado.");
+//        }
+//
+//        UserEntity user = resetToken.getUser();
+//        user.setPassword(passwordEncoder.encode(newPassword));
+//
+//        userRepository.save(user);
+//        tokenRepository.delete(resetToken);
+//    }
+
+    // Actualizar solo el email
+    public void updateEmail(String currentEmail, String newEmail) {
+        UserEntity user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el usuario"));
+
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ese email ya está en uso");
+        }
+
+        user.setEmail(newEmail);
+        userRepository.save(user);
+    }
+
+    // Cambiar contraseña
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el usuario"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La contraseña actual no es correcta");
+        }
+
+        if (!isValidPassword(newPassword)) {
+            throw new InvalidPasswordException("La nueva contraseña no cumple con los requisitos");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    // Eliminar cuenta del usuario autenticado
+    public void deleteAccount(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el usuario"));
+
+        userRepository.delete(user);
+    }
     /**
      * Carga un usuario por su correo electrónico (implementación de UserDetailsService).
      *

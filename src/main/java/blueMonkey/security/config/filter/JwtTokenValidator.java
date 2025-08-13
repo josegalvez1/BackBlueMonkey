@@ -5,6 +5,7 @@ import blueMonkey.security.util.JwtUtils;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
@@ -33,18 +34,29 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                                     @NotNull HttpServletResponse response,
                                     @NotNull FilterChain filterChain) throws ServletException, IOException {
 
+        // Obtener token del header Authorization
         String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        // Solo procesar si la cabecera Authorization tiene un Bearer no vacío
-        if (jwtToken != null && jwtToken.startsWith("Bearer ") && jwtToken.length() > 7) {
-            String token = jwtToken.substring(7);
+        // Si no está en header, buscar en cookie "jwt" usando el método privado
+        if (jwtToken == null || jwtToken.isEmpty()) {
+            jwtToken = getTokenFromCookies(request);
+        }
+
+        // Si jwtToken viene del header, puede empezar con "Bearer ", si viene de cookie no
+        if (jwtToken != null && !jwtToken.isEmpty()) {
+            if (jwtToken.startsWith("Bearer ")) {
+                jwtToken = jwtToken.substring(7);
+            }
+
             try {
-                DecodedJWT decodedJWT = jwtUtils.validateToken(token);
+                DecodedJWT decodedJWT = jwtUtils.validateToken(jwtToken);
                 String username = jwtUtils.extractUsername(decodedJWT);
 
                 List<String> roles = jwtUtils.getSpecificClaim(decodedJWT, "authorities").asList(String.class);
                 Collection<? extends GrantedAuthority> authorities =
-                        roles.stream().map(role -> (GrantedAuthority) () -> role).toList();
+                        roles.stream()
+                                .map(role -> (GrantedAuthority) () -> role)
+                                .toList();
 
                 Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -56,5 +68,16 @@ public class JwtTokenValidator extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String getTokenFromCookies(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

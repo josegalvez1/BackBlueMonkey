@@ -25,12 +25,17 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<Booking> getBookingsByStatus(@RequestParam Booking.BookingStatus status) {
+    public List<OutputBookingDto> getBookingsByStatus(@RequestParam Booking.BookingStatus status) {
         return bookingService.getBookingsByStatus(status);
+    }
+
+    @GetMapping("/by-email/{email}")
+    public List<OutputBookingDto> getBookingsByEmail(@PathVariable String email) {
+        return bookingService.getBookingsByEmail(email);
     }
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
-    public Booking updateBookingStatus(@PathVariable Long id,
+    public OutputBookingDto updateBookingStatus(@PathVariable Long id,
                                        @RequestParam Booking.BookingStatus status) {
         return bookingService.updateBookingStatus(id, status);
     }
@@ -43,7 +48,7 @@ public class BookingController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBooking(@PathVariable Long id) {
+    public ResponseEntity<String> deleteBooking(@PathVariable Long id) {
         return bookingService.deleteBooking(id);
     }
 
