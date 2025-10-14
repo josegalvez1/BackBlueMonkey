@@ -14,18 +14,21 @@ public interface TattooRepository extends JpaRepository<TattooEntity, Long> {
     TattooEntity findByCategory(String category);
     TattooEntity findBySize(String size);
     TattooEntity findByImageUrl(String imageUrl);
+    TattooEntity findByTheme(String theme);
 
 
     @Query("SELECT t FROM TattooEntity t WHERE " +
             "(:name IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:category IS NULL OR LOWER(t.category) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
             "(:bodyArea IS NULL OR LOWER(t.bodyArea) LIKE LOWER(CONCAT('%', :bodyArea, '%'))) AND "+
-            "(:size IS NULL OR LOWER(t.size) LIKE LOWER(CONCAT('%', :size, '%')))"
+            "(:size IS NULL OR LOWER(t.size) LIKE LOWER(CONCAT('%', :size, '%'))) AND"+
+            "(:theme IS NULL OR LOWER(t.theme) LIKE LOWER(CONCAT('%', :theme, '%')))"
 
     )
     List<TattooEntity> findByFilters(@Param("name") String name,
                                      @Param("category") String category,
                                      @Param("bodyArea") String bodyArea,
-                                     @Param("size") String size);
+                                     @Param("size") String size,
+                                     @Param("theme") String theme);
 
 }

@@ -13,5 +13,5 @@ public interface TattooService {
     ResponseEntity<Void> deleteTatuaje(Long id);
     List<OutputTattooDto> getAllTatuajes();
     OutputTattooDto getTatuaje(Long id);
-    List<OutputTattooDto> filtrarTatuajes(String name, String category, String bodyArea, String size);
+    List<OutputTattooDto> filtrarTatuajes(String name, String category, String bodyArea, String size, String tematica);
 }

@@ -76,6 +76,7 @@ public ResponseEntity<?> updateEmail(Authentication auth, @RequestBody Map<Strin
         userServiceImpl.deleteAccount(email);
         return ResponseEntity.ok(Map.of("mensaje", "Cuenta eliminada correctamente"));
     }
+    /* Entra por este para iniciar sesion */
     @PostMapping("/log-in")
     public ResponseEntity<AuthReponse> login(@RequestBody @Valid AuthLoginRequest userRequest){
         return new ResponseEntity<>(this.userServiceImpl.loginUser(userRequest), HttpStatus.OK);

@@ -21,5 +21,8 @@ public class InputTattooDto {
 
     private String bodyArea;
 
+    private String theme;
+
+
 
 }

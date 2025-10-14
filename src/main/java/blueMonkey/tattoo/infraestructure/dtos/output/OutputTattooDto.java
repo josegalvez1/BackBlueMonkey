@@ -21,4 +21,6 @@ public class OutputTattooDto {
 
     private String bodyArea;
 
+    private String theme;
+
 }

@@ -51,7 +51,7 @@ public class BlueMonkeyApplication {
 					RolesEntity persistedAdmin = roleRepository.findByRoleEnum(RoleEnum.ADMIN)
 							.orElseThrow(() -> new IllegalStateException("Role ADMIN no encontrado"));
 
-					RolesEntity persistedUser = roleRepository.findByRoleEnum(RoleEnum.USER)
+					RolesEntity persistedInvited = roleRepository.findByRoleEnum(RoleEnum.INVITED)
 							.orElseThrow(() -> new IllegalStateException("Role USER no encontrado"));
 
 					// Crear usuarios
@@ -66,7 +66,7 @@ public class BlueMonkeyApplication {
 							.name("lucia gg")
 							.email("lucia.galvez@nter.es")
 							.password(passwordEncoder.encode("lucia.99"))
-							.roles(Set.of(persistedUser))
+							.roles(Set.of(persistedInvited))
 							.build();
 
 					userRepository.saveAll(List.of(userJose, userLucia));

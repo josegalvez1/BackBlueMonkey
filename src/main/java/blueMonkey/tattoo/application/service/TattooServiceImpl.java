@@ -34,6 +34,7 @@ public class TattooServiceImpl implements TattooService {
         if(inputTatuajeDto.getCategory()!= null) tatuaje.setCategory(inputTatuajeDto.getCategory());
         if(inputTatuajeDto.getSize()!= null) tatuaje.setSize(inputTatuajeDto.getSize());
         if(inputTatuajeDto.getBodyArea()!= null) tatuaje.setBodyArea(inputTatuajeDto.getBodyArea());
+        if(inputTatuajeDto.getTheme()!= null) tatuaje.setTheme(inputTatuajeDto.getTheme());
 
         if(inputTatuajeDto.getImageUrl()!= null) tatuaje.setImageUrl(inputTatuajeDto.getImageUrl());
         tatuajeRepository.save(tatuaje);
@@ -60,9 +61,9 @@ public class TattooServiceImpl implements TattooService {
         return tatuajeMapper.toDTO(producto);
     }
 
-    public List<OutputTattooDto> filtrarTatuajes(String name, String category, String bodyArea, String size) {
+    public List<OutputTattooDto> filtrarTatuajes(String name, String category, String bodyArea, String size, String theme) {
 
-        List<TattooEntity> tatuajes = tatuajeRepository.findByFilters(name, category, bodyArea ,size);
+        List<TattooEntity> tatuajes = tatuajeRepository.findByFilters(name, category, bodyArea ,size, theme);
         return tatuajes.stream()
                 .map(tatuajeMapper::toDTO).toList();
     }

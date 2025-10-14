@@ -43,9 +43,12 @@ public class TattooController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String bodyArea,
-            @RequestParam(required = false) String size
-    ) {
-return tatuajeService.filtrarTatuajes(name,category,bodyArea,size);
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String theme
+
+            ) {
+        System.out.println("Filtro recibido - name: " + name + ", category: " + category + ", bodyArea: " + bodyArea + ", size: " + size + ", theme: " + theme);
+return tatuajeService.filtrarTatuajes(name,category,bodyArea,size,theme);
 
     }
 

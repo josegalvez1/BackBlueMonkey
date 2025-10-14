@@ -199,7 +199,14 @@ public class UserService implements UserDetailsService {
         return new UsernamePasswordAuthenticationToken(email, password, userDetails.getAuthorities());
     }
 
-
+    /**
+     * Registra un nuevo usuario en el sistema.
+     *
+     * @param authLoginRequest Los datos de registro (correo y contraseña).
+     * @return Un objeto AuthReponse que contiene el token JWT y el mensaje de éxito.
+     * @throws EntityNotFoundException Si el usuario ya existe con el mismo correo.
+     * @throws InvalidPasswordException Si la contraseña no cumple con los requisitos.
+     */
     public AuthReponse register(AuthLoginRequest authLoginRequest) {
         String email = authLoginRequest.username();
         String password = authLoginRequest.password();

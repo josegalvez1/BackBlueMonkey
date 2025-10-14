@@ -30,4 +30,7 @@ public class TattooEntity {
 
     private String bodyArea;
 
+    private String theme;
+
+
 }

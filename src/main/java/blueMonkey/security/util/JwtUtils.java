@@ -67,7 +67,7 @@ public class JwtUtils {
         }
     }
 
-    /* Extrae el username del token */
+    /* Extrae el email del token */
     public String extractUsername(DecodedJWT decodedJWT){
         //Obtengo el subject del token, que es el username
         return decodedJWT.getSubject().toString();
